@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AFR Labs is building Agent Flight Recorder, a reliability and debugging layer for action-taking AI agents.">
+  <meta name="theme-color" content="#07120f">
+  <title>AFR Labs — Agent Flight Recorder</title>
+  <style>
+    :root {
+      --ink: #0a1713;
+      --paper: #f4f2e9;
+      --paper-2: #e9e6da;
+      --green: #1d6b4f;
+      --mint: #a7f3cf;
+      --line: rgba(10, 23, 19, 0.16);
+      --muted: #5e6b66;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 80% 4%, rgba(167, 243, 207, 0.38), transparent 30rem),
+        var(--paper);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 14px;
+      font-weight: 760;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 650;
+      border-bottom: 1px solid var(--ink);
+      padding-bottom: 3px;
+    }
+
+    .hero {
+      min-height: 680px;
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      align-items: center;
+      gap: 72px;
+      padding: 82px 0 92px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(255, 255, 255, 0.42);
+      font-size: 12px;
+      font-weight: 720;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(29, 107, 79, 0.12);
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 26px 0 25px;
+      font-size: clamp(54px, 7vw, 92px);
+      line-height: 0.96;
+      letter-spacing: -0.065em;
+      font-weight: 720;
+    }
+
+    .lede {
+      max-width: 620px;
+      margin: 0;
+      color: #34433d;
+      font-size: clamp(18px, 2vw, 22px);
+      line-height: 1.55;
+      letter-spacing: -0.018em;
+    }
+
+    .hero-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 7px;
+      background: var(--ink);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 680;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .button:hover { transform: translateY(-2px); background: var(--green); }
+
+    .location { color: var(--muted); font-size: 14px; }
+
+    .recorder {
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 18px;
+      color: #eaf7f1;
+      background: #07120f;
+      box-shadow: 0 35px 80px rgba(9, 30, 23, 0.2);
+    }
+
+    .recorder::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      bottom: -120px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: rgba(50, 196, 137, 0.14);
+      filter: blur(5px);
+    }
+
+    .recorder-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 17px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      font: 11px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .live { color: var(--mint); }
+
+    .live::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: var(--mint);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      50% { opacity: 0.3; transform: scale(0.72); }
+    }
+
+    .trace {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 10px;
+      padding: 20px 0 2px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 13px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.035);
+    }
+
+    .step-index {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      color: var(--mint);
+      background: rgba(167, 243, 207, 0.1);
+      font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .step-label {
+      margin-bottom: 5px;
+      color: #7e988e;
+      font: 10px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .step-copy {
+      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #d9e9e2;
+    }
+
+    .outcome { border-color: rgba(167, 243, 207, 0.28); }
+
+    .section {
+      padding: 92px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: 0.75fr 1.25fr;
+      gap: 70px;
+      align-items: start;
+      margin-bottom: 65px;
+    }
+
+    .kicker {
+      margin: 5px 0 0;
+      color: var(--green);
+      font: 700 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      max-width: 780px;
+      font-size: clamp(36px, 5vw, 58px);
+      line-height: 1.06;
+      letter-spacing: -0.045em;
+      font-weight: 680;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      min-height: 250px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.3);
+    }
+
+    .card-number {
+      color: var(--green);
+      font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    h3 {
+      margin: 55px 0 14px;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .now {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 75px;
+      padding: 42px;
+      border-radius: 16px;
+      color: #eaf7f1;
+      background: var(--ink);
+    }
+
+    .now h2 { font-size: clamp(34px, 4.5vw, 52px); }
+
+    .now p {
+      margin: 0;
+      align-self: end;
+      color: #b9cbc3;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      padding: 35px 0 46px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer a { text-underline-offset: 4px; }
+
+    @media (max-width: 820px) {
+      .hero { grid-template-columns: 1fr; gap: 50px; padding: 65px 0 75px; }
+      .section-heading, .now { grid-template-columns: 1fr; gap: 30px; }
+      .grid { grid-template-columns: 1fr; }
+      .card { min-height: auto; }
+      h3 { margin-top: 35px; }
+    }
+
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 26px, 1120px); }
+      nav { padding: 18px 0; }
+      .nav-link { display: none; }
+      .hero { min-height: auto; padding-top: 48px; }
+      h1 { font-size: 52px; }
+      .recorder { padding: 14px; border-radius: 13px; }
+      .step { grid-template-columns: 30px 1fr; padding: 11px; }
+      .section { padding: 68px 0; }
+      .section-heading { margin-bottom: 38px; }
+      .now { padding: 27px; }
+      footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .live::before { animation: none; }
+      .button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav aria-label="Main navigation">
+      <div class="brand"><span class="mark">AFR</span> AFR Labs</div>
+      <a class="nav-link" href="mailto:jonathan.afrlabs@gmail.com">Talk to the founder</a>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div>
+          <span class="eyebrow">Building in London</span>
+          <h1>See why your AI agent failed.</h1>
+          <p class="lede">Agent Flight Recorder is a lightweight reliability layer for action-taking AI systems. It captures the context, decisions, tool calls and outcomes behind every run—so failures can be reproduced, understood and fixed.</p>
+          <div class="hero-links">
+            <a class="button" href="mailto:jonathan.afrlabs@gmail.com?subject=Agent%20Flight%20Recorder">Get in touch</a>
+            <span class="location">Early-stage product · AFR Labs</span>
+          </div>
+        </div>
+
+        <div class="recorder" aria-label="Example agent trajectory">
+          <div class="recorder-head">
+            <span>Trajectory / run_1047</span>
+            <span class="live">Recording</span>
+          </div>
+          <div class="trace">
+            <div class="step">
+              <span class="step-index">01</span>
+              <div>
+                <div class="step-label">State input</div>
+                <div class="step-copy">Customer asks to change a delivery address after checkout.</div>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step-index">02</span>
+              <div>
+                <div class="step-label">Action taken</div>
+                <div class="step-copy">Agent calls order_lookup, then update_shipping_address.</div>
+              </div>
+            </div>
+            <div class="step outcome">
+              <span class="step-index">03</span>
+              <div>
+                <div class="step-label">Resulting state</div>
+                <div class="step-copy">Warehouse rejected the update. Handoff required. Failure path preserved.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="product">
+        <div class="section-heading">
+          <p class="kicker">The product</p>
+          <h2>A black box recorder for multi-step agents.</h2>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="card-number">01 / Capture</span>
+            <h3>Record the whole trajectory</h3>
+            <p>Preserve state, actions, tool calls and resulting outcomes in chronological order—not just isolated prompts.</p>
+          </article>
+          <article class="card">
+            <span class="card-number">02 / Diagnose</span>
+            <h3>Find the failure path</h3>
+            <p>Reconstruct where an agent looped, used stale context, called the wrong tool or crossed an approval boundary.</p>
+          </article>
+          <article class="card">
+            <span class="card-number">03 / Improve</span>
+            <h3>Turn runs into evidence</h3>
+            <p>Compare trajectories and connect agent behaviour to operational, customer and commercial outcomes.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="now">
+          <h2>Starting with a small instrumentation and reliability pilot.</h2>
+          <p>AFR Labs is currently speaking with teams running agents that take real actions across customer support, finance, commerce and operations. The first product is a lightweight SDK and failure-path audit; automated anomaly detection and simulation come later.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2026 AFR Labs · London, United Kingdom</span>
+      <span><a href="mailto:jonathan.afrlabs@gmail.com">Email</a> · <a href="https://www.linkedin.com/in/jonathan-kelly-4b70121b3/" rel="noreferrer">LinkedIn</a></span>
+    </footer>
+  </div>
+</body>
+</html>
